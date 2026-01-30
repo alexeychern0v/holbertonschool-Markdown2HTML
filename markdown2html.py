@@ -51,12 +51,20 @@ if __name__ == "__main__":
     with open(output_file, 'w', encoding='utf-8') as html_file:
         in_list = False
         list_type = None
+        in_paragraph = False
+        paragraph_lines = []
         i = 0
         while i < len(lines):
             line = lines[i].rstrip('\n')
 
             html_line = parse_heading(line)
             if html_line:
+                if in_paragraph:
+                    html_file.write("<p>\n")
+                    html_file.write("<br/>\n".join(paragraph_lines))
+                    html_file.write("\n</p>\n")
+                    in_paragraph = False
+                    paragraph_lines = []
                 if in_list:
                     html_file.write("</ul>\n")
                     in_list = False
@@ -65,6 +73,13 @@ if __name__ == "__main__":
                 continue
 
             if is_unordered_list_item(line):
+                if in_paragraph:
+                    html_file.write("<p>\n")
+                    html_file.write("<br/>\n".join(paragraph_lines))
+                    html_file.write("\n</p>\n")
+                    in_paragraph = False
+                    paragraph_lines = []
+                
                 if not in_list:
                     html_file.write("<ul>\n")
                     in_list = True
@@ -81,6 +96,13 @@ if __name__ == "__main__":
                 continue
 
             if is_ordered_list_item(line):
+                if in_paragraph:
+                    html_file.write("<p>\n")
+                    html_file.write("<br/>\n".join(paragraph_lines))
+                    html_file.write("\n</p>\n")
+                    in_paragraph = False
+                    paragraph_lines = []
+
                 if not in_list:
                     html_file.write("<ol>\n")
                     in_list = True
@@ -96,12 +118,33 @@ if __name__ == "__main__":
                 i += 1
                 continue
 
-            if in_list and line.strip() == '':
+            if line.strip() == '':
+                if in_paragraph:
+                    html_file.write("<p>\n")
+                    html_file.write("<br/>\n".join(paragraph_lines))
+                    html_file.write("\n</p>\n")
+                    in_paragraph = False
+                    paragraph_lines = []
+                if in_list:
+                    html_file.write(f"</{list_type}>\n")
+                    in_list = False
+                    list_type = None
+                i += 1
+                continue
+
+            if in_list:
                 html_file.write(f"</{list_type}>\n")
                 in_list = False
                 list_type = None
 
+            paragraph_lines.append(line)
+            in_paragraph = True
             i += 1
+
+        if in_paragraph:
+            html_file.write("<p>\n")
+            html_file.write("<br/>\n".join(paragraph_lines))
+            html_file.write("\n</p>\n")
 
         if in_list:
             html_file.write(f"</{list_type}>\n")
