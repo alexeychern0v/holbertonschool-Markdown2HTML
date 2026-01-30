@@ -97,6 +97,7 @@ if __name__ == "__main__":
                 if in_list:
                     html_file.write("</ul>\n")
                     in_list = False
+                    list_type = None
                 html_file.write(html_line)
                 i += 1
                 continue
