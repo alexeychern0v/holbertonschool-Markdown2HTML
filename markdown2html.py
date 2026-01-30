@@ -19,7 +19,14 @@ def parse_heading(line):
 
     return None
 
+def is_unordered_list_item(line):
+    """Check if a line is an unordered list item"""
+    return line.startswith('- ')
 
+def parse_list_item(line):
+    """
+    Parse a Markdown list item and return the text without the dash"""
+    return line[2:].strip()
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
@@ -35,11 +42,40 @@ if __name__ == "__main__":
         sys.exit(1)
 
     with open(input_file, 'r', encoding='utf-8') as md_file:
-        with open(output_file, 'w', encoding='utf-8') as html_file:
-            for line in md_file:
-                line = line.rstrip('\n')
-                html_line = parse_heading(line)
-                if html_line:
-                    html_file.write(html_line)
+        lines = md_file.readlines()
+    
+    with open(output_file, 'w', encoding='utf-8') as html_file:
+        in_list = False
+        i = 0
+        while i < len(lines):
+            line = lines[i].rstrip('\n')
+
+            html_line = parse_heading(line)
+            if html_line:
+                if in_list:
+                    html_file.write("</ul>\n")
+                    in_list = False
+                html_file.write(html_line)
+                i += 1
+                continue
+
+            if is_unordered_list_item(line):
+                if not in_list:
+                    html_file.write("<ul>\n")
+                    in_list = True
+
+                item_text = parse_list_item(line)
+                html_file.write(f"<li>{item_text}</li>\n")
+                i += 1
+                continue
+
+            if in_list and line.strip() == '':
+                html_file.write("</ul>\n")
+                in_list = False
+
+            i += 1
+
+        if in_list:
+            html_file.write("</ul>\n")
     
     sys.exit(0)
