@@ -97,7 +97,7 @@ if __name__ == "__main__":
                 continue
 
             if in_list and line.strip() == '':
-                html_file.write("</ul>\n")
+                html_file.write(f"</{list_type}>\n")
                 in_list = False
                 list_type = None
 
