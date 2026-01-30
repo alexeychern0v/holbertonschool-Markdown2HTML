@@ -170,7 +170,7 @@ if __name__ == "__main__":
                 list_type = None
 
             formatted_line = parse_inline_formatting(line)
-            paragraph_lines.append(line)
+            paragraph_lines.append(formatted_line)
             in_paragraph = True
             i += 1
 
