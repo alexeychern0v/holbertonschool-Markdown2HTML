@@ -23,6 +23,10 @@ def is_unordered_list_item(line):
     """Check if a line is an unordered list item"""
     return line.startswith('- ')
 
+def is_ordered_list_item(line):
+    """Check if a line is an ordered list item"""
+    return line.startswith('* ')
+
 def parse_list_item(line):
     """
     Parse a Markdown list item and return the text without the dash"""
@@ -46,6 +50,7 @@ if __name__ == "__main__":
     
     with open(output_file, 'w', encoding='utf-8') as html_file:
         in_list = False
+        list_type = None
         i = 0
         while i < len(lines):
             line = lines[i].rstrip('\n')
@@ -63,6 +68,28 @@ if __name__ == "__main__":
                 if not in_list:
                     html_file.write("<ul>\n")
                     in_list = True
+                    list_type = 'ul'
+                
+                elif list_type != 'ul':
+                    html_file.write(f"</{list_type}>\n")
+                    html_file.write("<ul>\n")
+                    list_type = 'ul'
+
+                item_text = parse_list_item(line)
+                html_file.write(f"<li>{item_text}</li>\n")
+                i += 1
+                continue
+
+            if is_ordered_list_item(line):
+                if not in_list:
+                    html_file.write("<ol>\n")
+                    in_list = True
+                    list_type = 'ol'
+
+                elif list_type != 'ol':
+                    html_file.write(f"</{list_type}>\n")
+                    html_file.write("<ol>\n")
+                    list_type = 'ol'
 
                 item_text = parse_list_item(line)
                 html_file.write(f"<li>{item_text}</li>\n")
@@ -72,10 +99,11 @@ if __name__ == "__main__":
             if in_list and line.strip() == '':
                 html_file.write("</ul>\n")
                 in_list = False
+                list_type = None
 
             i += 1
 
         if in_list:
-            html_file.write("</ul>\n")
+            html_file.write(f"</{list_type}>\n")
     
     sys.exit(0)
