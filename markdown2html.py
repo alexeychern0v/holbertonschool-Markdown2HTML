@@ -35,6 +35,34 @@ def parse_list_item(line):
 
 def parse_inline_formatting(text):
     """Parse inline Markdown formatting (bold and emphasis) to HTML"""
+    import hashlib
+
+    while '[[' in text and ']]' in text:
+        start = text.find('[[')
+        if start != -1:
+            end = text.find(']]', start + 2)
+            if end != -1:
+                content = text[start + 2:end]
+                md5_hash = hashlib.md5(content.encode()).hexdigest()
+                text = text[:start] + md5_hash + text[end + 2:]
+            else:
+                break
+        else:
+            break
+
+    while '((' in text and '))' in text:
+        start = text.find('((')
+        if start != -1:
+            end = text.find('))', start + 2)
+            if end != -1:
+                content = text[start + 2:end]
+                cleaned = content.replace('c', '').replace('C', '')
+                text = text[:start] + cleaned + text[end + 2:]
+            else:
+                break
+        else:
+            break
+    
     while '**' in text:
         start = text.find('**')
         if start != -1:
