@@ -15,6 +15,7 @@ def parse_heading(line):
 
         if 1 <= level <= 6:
             heading_text = line[level:].strip()
+            heading_text = parse_inline_formatting(heading_text)
             return f"<h{level}>{heading_text}</h{level}>\n"
 
     return None
@@ -31,6 +32,34 @@ def parse_list_item(line):
     """
     Parse a Markdown list item and return the text without the dash"""
     return line[2:].strip()
+
+def parse_inline_formatting(text):
+    """Parse inline Markdown formatting (bold and emphasis) to HTML"""
+    while '**' in text:
+        start = text.find('**')
+        if start != -1:
+            end = text.find('**', start + 2)
+            if end != -1:
+                bold_text = text[start + 2:end]
+                text = text[:start] + f'<b>{bold_text}</b>' + text[end + 2:]
+            else:
+                break
+        else:
+            break
+
+    while '__' in text:
+        start = text.find('__')
+        if start != -1:
+            end = text.find('__', start + 2)
+            if end != -1:
+                em_text = text[start + 2:end]
+                text = text[:start] + f'<em>{em_text}</em>' + text[end + 2:]
+            else:
+                break
+        else:
+            break
+
+    return text
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
@@ -91,6 +120,7 @@ if __name__ == "__main__":
                     list_type = 'ul'
 
                 item_text = parse_list_item(line)
+                item_text = parse_inline_formatting(item_text)
                 html_file.write(f"<li>{item_text}</li>\n")
                 i += 1
                 continue
@@ -114,6 +144,7 @@ if __name__ == "__main__":
                     list_type = 'ol'
 
                 item_text = parse_list_item(line)
+                item_text = parse_inline_formatting(item_text)
                 html_file.write(f"<li>{item_text}</li>\n")
                 i += 1
                 continue
@@ -137,6 +168,7 @@ if __name__ == "__main__":
                 in_list = False
                 list_type = None
 
+            formatted_line = parse_inline_formatting(line)
             paragraph_lines.append(line)
             in_paragraph = True
             i += 1
